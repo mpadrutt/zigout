@@ -15,13 +15,14 @@ const TARGET_WIDTH = 100;
 const TARGET_HEIGHT = 20;
 const TARGET_WIDTH_PADDING = 10;
 const TARGET_HEIGHT_PADDING = 10;
+const BALL_RADIUS = 16;
 
 const Target = struct {
     x: c_int,
     y: c_int,
     destroyed: bool,
 
-    pub fn make_targets() ![NUM_TARGETS]Target {
+    pub fn init() ![NUM_TARGETS]Target {
         var targets: [NUM_TARGETS]Target = undefined;
 
         const targets_per_row: u32 = (WINDOW_WIDTH - 2 * WIDTH_PADDING) / (TARGET_WIDTH + TARGET_WIDTH_PADDING);
@@ -47,11 +48,53 @@ const Target = struct {
     }
 };
 
+const Paddle = struct {
+    x: c_int,
+    y: c_int,
+
+    pub fn init() Paddle {
+        return Paddle{ .x = (WINDOW_WIDTH - TARGET_WIDTH) / 2, .y = WINDOW_HEIGHT - TARGET_HEIGHT - TARGET_HEIGHT_PADDING };
+    }
+
+    pub fn update(self: *Paddle) void {
+        if (raylib.IsKeyDown(raylib.KEY_LEFT)) self.x = @max(0, self.x - 4);
+        if (raylib.IsKeyDown(raylib.KEY_RIGHT)) self.x = @min(WINDOW_WIDTH - TARGET_WIDTH, self.x + 4);
+    }
+};
+
+const Ball = struct {
+    x: c_int,
+    y: c_int,
+    dx: c_int,
+    dy: c_int,
+    paused: bool,
+
+    pub fn init() Ball {
+        return Ball{ .x = WINDOW_WIDTH / 2, .y = WINDOW_HEIGHT - TARGET_HEIGHT - TARGET_HEIGHT_PADDING - BALL_RADIUS, .dx = 0, .dy = 0, .paused = true };
+    }
+
+    pub fn update(self: *Ball, targets: [NUM_TARGETS]Target, paddle: Paddle) void {
+        _ = paddle;
+        _ = targets;
+        if (raylib.IsKeyDown(raylib.KEY_SPACE)) {
+            self.dx = 1;
+            self.dy = 1;
+        }
+
+        self.x -= self.dx;
+        self.y -= self.dy;
+    }
+};
+
+pub fn game_step() void {}
+
 pub fn main() !void {
     raylib.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "raylib [core] example - basic window");
     raylib.SetTargetFPS(FPS);
 
-    var targets = try Target.make_targets();
+    var targets = try Target.init();
+    var paddle = Paddle.init();
+    var ball = Ball.init();
 
     // var circle_x: c_int = 0;
 
@@ -65,10 +108,11 @@ pub fn main() !void {
             }
         }
 
-        // raylib.DrawCircle(circle_x, 450, 24, raylib.RED);
-        //
-        // if (raylib.IsKeyDown(raylib.KEY_LEFT)) circle_x -= 4;
-        // if (raylib.IsKeyDown(raylib.KEY_RIGHT)) circle_x += 4;
+        raylib.DrawRectangle(paddle.x, paddle.y, TARGET_WIDTH, TARGET_HEIGHT, raylib.BLACK);
+        raylib.DrawCircle(ball.x, ball.y, BALL_RADIUS, raylib.RED);
+
+        paddle.update();
+        ball.update(targets, paddle);
 
         raylib.EndDrawing();
     }
