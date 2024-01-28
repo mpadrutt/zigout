@@ -132,28 +132,30 @@ pub fn main() !void {
     var paddle = Paddle.init();
     var ball = Ball.init();
 
-    var score: c_int = 0;
-    var highscore: c_int = 0;
-    _ = highscore;
+    // var score: c_int = 0;
+    // var highscore: c_int = 0;
+    // _ = highscore;
 
     while (!raylib.WindowShouldClose()) {
         raylib.BeginDrawing();
         raylib.ClearBackground(raylib.RAYWHITE);
 
-        var temp_score: c_int = 0;
+        // var temp_score: c_int = 0;
         for (targets) |target| {
             if (!target.*.destroyed) {
                 raylib.DrawRectangle(target.*.x, target.*.y, TARGET_WIDTH, TARGET_HEIGHT, raylib.GRAY);
-            } else {
-                temp_score += 1;
             }
+            // } else {
+            //     temp_score += 1;
+            // }
         }
-        score = temp_score;
+        // score = temp_score;
 
         raylib.DrawRectangle(paddle.x, paddle.y, TARGET_WIDTH, TARGET_HEIGHT, raylib.BLACK);
         raylib.DrawCircle(ball.x, ball.y, BALL_RADIUS, raylib.RED);
-        raylib.DrawText("Highscore: 12", 12, 12, 24, raylib.BLACK);
-        raylib.DrawText("Current Score: 12", WINDOW_WIDTH - 230, 12, 24, raylib.BLACK);
+        // raylib.DrawText(HIGHSCORE_STRING, 12, 12, 24, raylib.BLACK);
+        // raylib.DrawText(score, 12, 12, 24, raylib.BLACK);
+        // raylib.DrawText(SCORE_STRING, WINDOW_WIDTH - 230, 12, 24, raylib.BLACK);
 
         paddle.update();
 
