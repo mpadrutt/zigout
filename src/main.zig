@@ -5,40 +5,45 @@ const raylib = @cImport({
 });
 
 const WINDOW_WIDTH = 800;
-const WIDTH_PADDING = 50;
+const WIDTH_PADDING = 30;
 const WINDOW_HEIGHT = 600;
-const HEIGHT_PADDING = 50;
+const HEIGHT_PADDING = 30;
 const FPS = 144;
 const SPEED = 1;
-const NUM_TARGETS = 20;
+const NUM_TARGETS = 18;
 const TARGET_WIDTH = 100;
 const TARGET_HEIGHT = 20;
 const TARGET_WIDTH_PADDING = 10;
 const TARGET_HEIGHT_PADDING = 10;
 
 const Target = struct {
-    x: f32,
-    y: f32,
+    x: c_int,
+    y: c_int,
     destroyed: bool,
 
-    pub fn make_targets() [NUM_TARGETS]Target {
+    pub fn make_targets() ![NUM_TARGETS]Target {
         var targets: [NUM_TARGETS]Target = undefined;
 
         const targets_per_row: u32 = (WINDOW_WIDTH - 2 * WIDTH_PADDING) / (TARGET_WIDTH + TARGET_WIDTH_PADDING);
-
-        const num_cols = std.math.divCeil(comptime_int, NUM_TARGETS, targets_per_row);
+        const extra_padding: u32 = (WINDOW_WIDTH - 2 * WIDTH_PADDING - targets_per_row * (TARGET_WIDTH + TARGET_WIDTH_PADDING)) / targets_per_row;
+        const num_cols = try std.math.divCeil(u32, NUM_TARGETS, targets_per_row);
 
         var drawn_targets: u32 = 0;
 
-        for (targets_per_row) |i| {
-            for (num_cols) |j| {
+        for (0..num_cols) |j| {
+            for (0..targets_per_row) |i| {
+                if (drawn_targets >= NUM_TARGETS) break;
                 targets[drawn_targets] = Target{
-                    .x = WIDTH_PADDING + i * (TARGET_WIDTH + TARGET_WIDTH_PADDING),
-                    .y = HEIGHT_PADDING + j * (TARGET_HEIGHT + TARGET_HEIGHT_PADDING),
+                    .x = @intCast(WIDTH_PADDING + i * (TARGET_WIDTH + TARGET_WIDTH_PADDING + extra_padding)),
+                    .y = @intCast(HEIGHT_PADDING + j * (TARGET_HEIGHT + TARGET_HEIGHT_PADDING)),
                     .destroyed = false,
                 };
+
+                drawn_targets += 1;
             }
         }
+
+        return targets;
     }
 };
 
@@ -46,7 +51,7 @@ pub fn main() !void {
     raylib.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "raylib [core] example - basic window");
     raylib.SetTargetFPS(FPS);
 
-    var targets = Target.make_targets();
+    var targets = try Target.make_targets();
 
     // var circle_x: c_int = 0;
 
